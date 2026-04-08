@@ -1,0 +1,13 @@
+Microsoft.AspNetCore.Authentication.JwtBearer
+Microsoft.AspNetCore.Mvc.NewtonsoftJson
+
+Microsoft.EntityFrameworkCore.SqlServer?
+
+CommunityToolkit.Mvvm
+Microsoft.Xaml.Behaviors.Wpf
+Prism.Core
+CsvHelper
+ExcelDataReader/EPPlus
+MahApps.Metro
+
+ES7+ React/Redux/React-Native snippets
