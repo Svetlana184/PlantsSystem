@@ -1,0 +1,223 @@
+-- =============================================
+-- 1. СПРАВОЧНИКИ
+-- =============================================
+
+-- Подразделения
+CREATE TABLE Departments (
+    Id_Department SERIAL PRIMARY KEY,
+    Name_Department VARCHAR(200) NOT NULL,
+    Id_Parent_Department INT REFERENCES Departments(Id_Department)
+);
+
+-- Пользователи
+CREATE TABLE Users (
+    Id_User SERIAL PRIMARY KEY,
+    First_Name VARCHAR(100) NOT NULL,
+    Second_Name VARCHAR(100),
+    Last_Name VARCHAR(100) NOT NULL,
+    Login VARCHAR(100) UNIQUE NOT NULL,
+    Password_Hash VARCHAR(255) NOT NULL,
+    Role VARCHAR(100) NOT NULL,
+    Id_Department INT NOT NULL REFERENCES Departments(Id_Department)
+);
+
+-- Продукция
+CREATE TABLE Products (
+    Id_Product SERIAL PRIMARY KEY,
+    Code VARCHAR(50) UNIQUE NOT NULL,
+    Name_Product VARCHAR(200) NOT NULL,
+    Type VARCHAR(100) NOT NULL,
+    Form VARCHAR(100) NOT NULL,
+    Status VARCHAR(50) DEFAULT 'Активный'
+);
+
+-- Сырье
+CREATE TABLE Raw_Materials (
+    Id_Raw_Material SERIAL PRIMARY KEY,
+    Code VARCHAR(50) UNIQUE NOT NULL,
+    Name VARCHAR(200) NOT NULL,
+    Unit VARCHAR(20) NOT NULL
+);
+
+-- Партии сырья
+CREATE TABLE Raw_Material_Batches (
+    Id_Batch SERIAL PRIMARY KEY,
+    Batch_Number VARCHAR(100) UNIQUE NOT NULL,
+    Id_Raw_Material INT NOT NULL REFERENCES Raw_Materials(Id_Raw_Material),
+    Quantity DECIMAL(15, 3) NOT NULL,
+    Status VARCHAR(50) DEFAULT 'Поступило'
+);
+
+-- Оборудование
+CREATE TABLE Equipment (
+    Id_Equipment SERIAL PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    Type VARCHAR(50) NOT NULL,
+    Status VARCHAR(50) DEFAULT 'Исправно'
+);
+
+-- =============================================
+-- 2. РЕЦЕПТУРЫ
+-- =============================================
+
+CREATE TABLE Recipes (
+    Id_Recipe SERIAL PRIMARY KEY,
+    Id_Product INT NOT NULL REFERENCES Products(Id_Product),
+    Version_Number INT NOT NULL,
+    Status VARCHAR(50) DEFAULT 'Черновик',
+    Created_By INT NOT NULL REFERENCES Users(Id_User),
+    Created_At TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(Id_Product, Version_Number)
+);
+
+-- Состав рецептуры
+CREATE TABLE Recipe_Components (
+    Id_Record SERIAL PRIMARY KEY,
+    Id_Recipe INT NOT NULL REFERENCES Recipes(Id_Recipe) ON DELETE CASCADE,
+    Id_Raw_Material INT NOT NULL REFERENCES Raw_Materials(Id_Raw_Material),
+    Percentage DECIMAL(5, 2) NOT NULL CHECK (Percentage > 0 AND Percentage <= 100),
+    Loading_Order INT NOT NULL
+);
+
+-- =============================================
+-- 3. ТЕХНОЛОГИЧЕСКИЕ КАРТЫ
+-- =============================================
+
+CREATE TABLE Tech_Maps (
+    Id_Map SERIAL PRIMARY KEY,
+    Id_Product INT NOT NULL REFERENCES Products(Id_Product),
+    Version_Number INT NOT NULL,
+    Status VARCHAR(50) DEFAULT 'Черновик',
+    Created_By INT NOT NULL REFERENCES Users(Id_User),
+    Created_At TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(Id_Product, Version_Number)
+);
+
+-- Шаги технологической карты
+CREATE TABLE Tech_Steps (
+    Id_Step SERIAL PRIMARY KEY,
+    Id_Map INT NOT NULL REFERENCES Tech_Maps(Id_Map) ON DELETE CASCADE,
+    Step_Order INT NOT NULL,
+    Name_Step VARCHAR(200) NOT NULL,
+    Description TEXT,
+    Is_Mandatory BOOLEAN DEFAULT TRUE
+);
+
+-- Параметры шага
+CREATE TABLE Step_Parameters (
+    Id_Param SERIAL PRIMARY KEY,
+    Id_Step INT NOT NULL REFERENCES Tech_Steps(Id_Step) ON DELETE CASCADE,
+    Name_Param VARCHAR(100) NOT NULL,
+    Target_Value DECIMAL(15, 3) NOT NULL,
+    Min_Value DECIMAL(15, 3) NOT NULL,
+    Max_Value DECIMAL(15, 3) NOT NULL,
+    Unit VARCHAR(20)
+);
+
+-- =============================================
+-- 4. ПРОИЗВОДСТВЕННЫЕ ПАРТИИ
+-- =============================================
+
+CREATE TABLE Production_Batches (
+    Id_Batch SERIAL PRIMARY KEY,
+    Batch_Number VARCHAR(100) UNIQUE NOT NULL,
+    Id_Product INT NOT NULL REFERENCES Products(Id_Product),
+    Id_Recipe INT NOT NULL REFERENCES Recipes(Id_Recipe),
+    Id_Map INT NOT NULL REFERENCES Tech_Maps(Id_Map),
+    Id_Equipment INT REFERENCES Equipment(Id_Equipment),
+    Planned_Quantity DECIMAL(15, 3) NOT NULL,
+    Actual_Quantity DECIMAL(15, 3),
+    Status VARCHAR(50) DEFAULT 'Создана',
+    Started_At TIMESTAMP,
+    Finished_At TIMESTAMP,
+    Created_By INT NOT NULL REFERENCES Users(Id_User),
+    Created_At TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Использованное сырье в партии
+CREATE TABLE Batch_Raw_Materials (
+    Id_Record SERIAL PRIMARY KEY,
+    Id_Production_Batch INT NOT NULL REFERENCES Production_Batches(Id_Batch),
+    Id_Raw_Material_Batch INT NOT NULL REFERENCES Raw_Material_Batches(Id_Batch),
+    Quantity DECIMAL(15, 3) NOT NULL
+);
+
+-- =============================================
+-- 5. ВЫПОЛНЕНИЕ ШАГОВ
+-- =============================================
+
+CREATE TABLE Batch_Steps (
+    Id_Execution SERIAL PRIMARY KEY,
+    Id_Production_Batch INT NOT NULL REFERENCES Production_Batches(Id_Batch),
+    Id_Step INT NOT NULL REFERENCES Tech_Steps(Id_Step),
+    Status VARCHAR(50),
+    Started_By INT REFERENCES Users(Id_User),
+    Started_At TIMESTAMP,
+    Finished_By INT REFERENCES Users(Id_User),
+    Finished_At TIMESTAMP,
+    Comment TEXT
+);
+
+-- Фактические параметры
+CREATE TABLE Batch_Parameters (
+    Id_Actual SERIAL PRIMARY KEY,
+    Id_Execution INT NOT NULL REFERENCES Batch_Steps(Id_Execution) ON DELETE CASCADE,
+    Id_Param INT NOT NULL REFERENCES Step_Parameters(Id_Param),
+    Actual_Value DECIMAL(15, 3) NOT NULL,
+    Recorded_At TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =============================================
+-- 6. ЛАБОРАТОРНЫЙ КОНТРОЛЬ
+-- =============================================
+
+CREATE TABLE Lab_Tests (
+    Id_Test SERIAL PRIMARY KEY,
+    Test_Number VARCHAR(100) UNIQUE NOT NULL,
+    Id_Raw_Material_Batch INT REFERENCES Raw_Material_Batches(Id_Batch),
+    Id_Production_Batch INT REFERENCES Production_Batches(Id_Batch),
+    Status VARCHAR(50) DEFAULT 'Назначен' CHECK (Status IN ('Назначен', 'В работе', 'Завершен')),
+    Assigned_To INT REFERENCES Users(Id_User),
+    Created_At TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    Finished_At TIMESTAMP,
+    Conclusion VARCHAR(50) CHECK (Conclusion IN ('Соответствует', 'Не соответствует')),
+    Comment TEXT,
+    CHECK (Id_Raw_Material_Batch IS NOT NULL OR Id_Production_Batch IS NOT NULL)
+);
+
+-- Результаты испытаний
+CREATE TABLE Lab_Results (
+    Id_Result SERIAL PRIMARY KEY,
+    Id_Test INT NOT NULL REFERENCES Lab_Tests(Id_Test) ON DELETE CASCADE,
+    Parameter_Name VARCHAR(100) NOT NULL,
+    Norm_Min DECIMAL(10, 3),
+    Norm_Max DECIMAL(10, 3),
+    Actual_Value DECIMAL(10, 3),
+    Unit VARCHAR(20)
+);
+
+-- =============================================
+-- 7. ОТКЛОНЕНИЯ И СОБЫТИЯ
+-- =============================================
+
+CREATE TABLE Events (
+    Id_Event SERIAL PRIMARY KEY,
+    Event_Type VARCHAR(50) NOT NULL CHECK (Event_Type IN ('Инфо', 'Предупреждение', 'Ошибка')),
+    Id_Production"Системные объекты"_Batch INT REFERENCES Production_Batches(Id_Batch),
+    Id_User INT REFERENCES Users(Id_User),
+    Message TEXT NOT NULL,
+    Created_At TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE Deviations (
+    Id_Deviation SERIAL PRIMARY KEY,
+    Id_Production_Batch INT NOT NULL REFERENCES Production_Batches(Id_Batch),
+    Id_Step INT REFERENCES Tech_Steps(Id_Step),
+    Parameter_Name VARCHAR(100) NOT NULL,
+    Expected_Value DECIMAL(15, 3) NOT NULL,
+    Actual_Value DECIMAL(15, 3) NOT NULL,
+    Severity VARCHAR(20) CHECK (Severity IN ('Низкая', 'Средняя', 'Критическая')),
+    Created_At TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    Resolved_At TIMESTAMP,
+    Resolution_Comment TEXT
+);
