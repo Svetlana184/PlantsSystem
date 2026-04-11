@@ -5,7 +5,7 @@
 
 ### Код:
 
-1. API
-2. Первое настольное приложение
-3. Второе настольное приложение
+1. [API](https://github.com/Svetlana184/PlantsAPI.git)
+2. [Первое настольное приложение](https://github.com/Svetlana184/PlantsDesktop.git)
+3. [Второе настольное приложение](https://github.com/Svetlana184/PlantsDesktop.git)
 4. Веб-приложение

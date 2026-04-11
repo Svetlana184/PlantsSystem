@@ -1,13 +1,22 @@
 Microsoft.AspNetCore.Authentication.JwtBearer
 Microsoft.AspNetCore.Mvc.NewtonsoftJson
+Npgsql.EntityFrameworkCore.PostgreSQL
+Swashbuckle.AspNetCore
+Microsoft.AspNetCore.SignalR
 
-Microsoft.EntityFrameworkCore.SqlServer?
-
-CommunityToolkit.Mvvm
-Microsoft.Xaml.Behaviors.Wpf
-Prism.Core
-CsvHelper
-ExcelDataReader/EPPlus
-MahApps.Metro
+CommunityToolkit.Mvvm	MVVM (свойства, команды)
+Avalonia.Controls.DataGrid	Таблицы с сортировкой и фильтрацией
+EPPlus	Экспорт отчетов в Excel
+CsvHelper	Экспорт в CSV
+Avalonia.Xaml.Behaviors
+Prism.Avalonia
+Microsoft.Extensions.DependencyInjection
+MessageBox.Avalonia
+DialogHost.Avalonia
+LiveCharts2 (Avalonia)
 
 ES7+ React/Redux/React-Native snippets
+React + React DOM	Базовый фреймворк
+Vite	Сборщик проекта
+React Router DOM	Маршрутизация между экранами
+Axios	HTTP-запросы к API
