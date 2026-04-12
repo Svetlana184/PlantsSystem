@@ -1,8 +1,7 @@
-Microsoft.AspNetCore.Authentication.JwtBearer
-Microsoft.AspNetCore.Mvc.NewtonsoftJson
-Npgsql.EntityFrameworkCore.PostgreSQL
-Swashbuckle.AspNetCore
-Microsoft.AspNetCore.SignalR
+Microsoft.AspNetCore.Authentication.JwtBearer 9.0.0
+Microsoft.AspNetCore.Mvc.NewtonsoftJson 9.0.0
+Npgsql.EntityFrameworkCore.PostgreSQL 9.0.0
+Swashbuckle.AspNetCore 6.9.0
 
 CommunityToolkit.Mvvm	MVVM (свойства, команды)
 Avalonia.Controls.DataGrid	Таблицы с сортировкой и фильтрацией
@@ -16,7 +15,7 @@ DialogHost.Avalonia
 LiveCharts2 (Avalonia)
 
 ES7+ React/Redux/React-Native snippets
-React + React DOM	Базовый фреймворк
-Vite	Сборщик проекта
-React Router DOM	Маршрутизация между экранами
-Axios	HTTP-запросы к API
+React + React DOM	
+Vite	
+React Router DOM	
+Axios	
