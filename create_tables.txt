@@ -203,7 +203,7 @@ CREATE TABLE Lab_Results (
 CREATE TABLE Events (
     Id_Event SERIAL PRIMARY KEY,
     Event_Type VARCHAR(50) NOT NULL CHECK (Event_Type IN ('Инфо', 'Предупреждение', 'Ошибка')),
-    Id_Production"Системные объекты"_Batch INT REFERENCES Production_Batches(Id_Batch),
+    Id_Production_Batch INT REFERENCES Production_Batches(Id_Batch),
     Id_User INT REFERENCES Users(Id_User),
     Message TEXT NOT NULL,
     Created_At TIMESTAMP DEFAULT CURRENT_TIMESTAMP
